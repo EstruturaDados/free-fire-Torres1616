@@ -1,70 +1,292 @@
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
-#include <stdbool.h>
+#include <string.h>
 
-// Código da Ilha – Edição Free Fire
-// Nível: Mestre
-// Este programa simula o gerenciamento avançado de uma mochila com componentes coletados durante a fuga de uma ilha.
-// Ele introduz ordenação com critérios e busca binária para otimizar a gestão dos recursos.
+#define MAX_ITENS 10
+#define TAM_NOME 50
+#define TAM_TIPO 30
 
-int main() {
-    // Menu principal com opções:
-    // 1. Adicionar um item
-    // 2. Remover um item
-    // 3. Listar todos os itens
-    // 4. Ordenar os itens por critério (nome, tipo, prioridade)
-    // 5. Realizar busca binária por nome
-    // 0. Sair
+// Struct para representar cada item da mochila (versão vetor)
+struct Item {
+    char nome[TAM_NOME];
+    char tipo[TAM_TIPO];
+    int quantidade;
+};
 
-    // A estrutura switch trata cada opção chamando a função correspondente.
-    // A ordenação e busca binária exigem que os dados estejam bem organizados.
+// Struct para lista encadeada
+struct No {
+    struct Item item;
+    struct No* proximo;
+};
 
+// Função para exibir o menu principal
+void exibirMenuPrincipal() {
+    printf("\n=== MOCHILA DA ILHA - FREE FIRE ===\n");
+    printf("1. Usar Vetor Estatico\n");
+    printf("2. Usar Lista Encadeada\n");
+    printf("3. Sair\n");
+    printf("Escolha uma opcao: ");
+}
+
+// Função para exibir o menu de operações
+void exibirMenuOperacoes() {
+    printf("\n=== MENU DE OPERACOES ===\n");
+    printf("1. Adicionar item\n");
+    printf("2. Remover item\n");
+    printf("3. Listar itens\n");
+    printf("4. Voltar ao menu principal\n");
+    printf("Escolha uma opcao: ");
+}
+
+// ========== IMPLEMENTAÇÃO COM VETOR ESTÁTICO ==========
+
+// Adicionar item no vetor
+int adicionarItemVetor(struct Item mochila[], int *quantidadeItens) {
+    if (*quantidadeItens >= MAX_ITENS) {
+        printf("Mochila cheia! Nao e possivel adicionar mais itens.\n");
+        return 0;
+    }
+    
+    printf("\n=== ADICIONAR ITEM (VETOR) ===\n");
+    printf("Nome do item: ");
+    scanf(" %[^\n]", mochila[*quantidadeItens].nome);
+    
+    printf("Tipo do item: ");
+    scanf(" %[^\n]", mochila[*quantidadeItens].tipo);
+    
+    printf("Quantidade: ");
+    scanf("%d", &mochila[*quantidadeItens].quantidade);
+    
+    (*quantidadeItens)++;
+    printf("Item adicionado com sucesso!\n");
+    return 1;
+}
+
+// Remover item do vetor
+int removerItemVetor(struct Item mochila[], int *quantidadeItens) {
+    if (*quantidadeItens == 0) {
+        printf("Mochila vazia! Nao ha itens para remover.\n");
+        return 0;
+    }
+    
+    char nomeRemover[TAM_NOME];
+    printf("\n=== REMOVER ITEM (VETOR) ===\n");
+    printf("Nome do item a remover: ");
+    scanf(" %[^\n]", nomeRemover);
+    
+    for (int i = 0; i < *quantidadeItens; i++) {
+        if (strcmp(mochila[i].nome, nomeRemover) == 0) {
+            for (int j = i; j < *quantidadeItens - 1; j++) {
+                mochila[j] = mochila[j + 1];
+            }
+            (*quantidadeItens)--;
+            printf("Item '%s' removido com sucesso!\n", nomeRemover);
+            return 1;
+        }
+    }
+    
+    printf("Item '%s' nao encontrado!\n", nomeRemover);
     return 0;
 }
 
-// Struct Item:
-// Representa um componente com nome, tipo, quantidade e prioridade (1 a 5).
-// A prioridade indica a importância do item na montagem do plano de fuga.
+// Listar itens do vetor
+void listarItensVetor(struct Item mochila[], int quantidadeItens) {
+    if (quantidadeItens == 0) {
+        printf("\nMochila vazia!\n");
+        return;
+    }
+    
+    printf("\n=== ITENS NA MOCHILA (VETOR) ===\n");
+    printf("--------------------------------------------\n");
+    printf("NOME                    | TIPO       | QTD\n");
+    printf("--------------------------------------------\n");
+    
+    for (int i = 0; i < quantidadeItens; i++) {
+        printf("%-23s | %-10s | %-3d\n", 
+               mochila[i].nome, mochila[i].tipo, mochila[i].quantidade);
+    }
+    printf("--------------------------------------------\n");
+}
 
-// Enum CriterioOrdenacao:
-// Define os critérios possíveis para a ordenação dos itens (nome, tipo ou prioridade).
+// ========== IMPLEMENTAÇÃO COM LISTA ENCADEADA ==========
 
-// Vetor mochila:
-// Armazena até 10 itens coletados.
-// Variáveis de controle: numItens (quantidade atual), comparacoes (análise de desempenho), ordenadaPorNome (para controle da busca binária).
+// Adicionar item no início da lista encadeada
+void adicionarItemLista(struct No** inicio) {
+    struct No* novo = (struct No*)malloc(sizeof(struct No));
+    
+    printf("\n=== ADICIONAR ITEM (LISTA) ===\n");
+    printf("Nome do item: ");
+    scanf(" %[^\n]", novo->item.nome);
+    
+    printf("Tipo do item: ");
+    scanf(" %[^\n]", novo->item.tipo);
+    
+    printf("Quantidade: ");
+    scanf("%d", &novo->item.quantidade);
+    
+    novo->proximo = *inicio;
+    *inicio = novo;
+    
+    printf("Item adicionado com sucesso!\n");
+}
 
-// limparTela():
-// Simula a limpeza da tela imprimindo várias linhas em branco.
+// Remover item da lista encadeada
+void removerItemLista(struct No** inicio) {
+    if (*inicio == NULL) {
+        printf("Mochila vazia! Nao ha itens para remover.\n");
+        return;
+    }
+    
+    char nomeRemover[TAM_NOME];
+    printf("\n=== REMOVER ITEM (LISTA) ===\n");
+    printf("Nome do item a remover: ");
+    scanf(" %[^\n]", nomeRemover);
+    
+    struct No* atual = *inicio;
+    struct No* anterior = NULL;
+    
+    while (atual != NULL) {
+        if (strcmp(atual->item.nome, nomeRemover) == 0) {
+            if (anterior == NULL) {
+                *inicio = atual->proximo;
+            } else {
+                anterior->proximo = atual->proximo;
+            }
+            free(atual);
+            printf("Item '%s' removido com sucesso!\n", nomeRemover);
+            return;
+        }
+        anterior = atual;
+        atual = atual->proximo;
+    }
+    
+    printf("Item '%s' nao encontrado!\n", nomeRemover);
+}
 
-// exibirMenu():
-// Apresenta o menu principal ao jogador, com destaque para status da ordenação.
+// Listar itens da lista encadeada
+void listarItensLista(struct No* inicio) {
+    if (inicio == NULL) {
+        printf("\nMochila vazia!\n");
+        return;
+    }
+    
+    printf("\n=== ITENS NA MOCHILA (LISTA) ===\n");
+    printf("--------------------------------------------\n");
+    printf("NOME                    | TIPO       | QTD\n");
+    printf("--------------------------------------------\n");
+    
+    struct No* atual = inicio;
+    while (atual != NULL) {
+        printf("%-23s | %-10s | %-3d\n", 
+               atual->item.nome, atual->item.tipo, atual->item.quantidade);
+        atual = atual->proximo;
+    }
+    printf("--------------------------------------------\n");
+}
 
-// inserirItem():
-// Adiciona um novo componente à mochila se houver espaço.
-// Solicita nome, tipo, quantidade e prioridade.
-// Após inserir, marca a mochila como "não ordenada por nome".
+// Liberar memória da lista encadeada
+void liberarLista(struct No** inicio) {
+    struct No* atual = *inicio;
+    while (atual != NULL) {
+        struct No* temp = atual;
+        atual = atual->proximo;
+        free(temp);
+    }
+    *inicio = NULL;
+}
 
-// removerItem():
-// Permite remover um componente da mochila pelo nome.
-// Se encontrado, reorganiza o vetor para preencher a lacuna.
+// ========== MENUS E CONTROLE PRINCIPAL ==========
 
-// listarItens():
-// Exibe uma tabela formatada com todos os componentes presentes na mochila.
+// Menu para vetor estático
+void menuVetor() {
+    struct Item mochila[MAX_ITENS];
+    int quantidadeItens = 0;
+    int opcao;
+    
+    printf("\nMODO VETOR ESTATICO ATIVADO\n");
+    printf("Capacidade: %d itens\n", MAX_ITENS);
+    
+    do {
+        exibirMenuOperacoes();
+        scanf("%d", &opcao);
+        
+        switch(opcao) {
+            case 1:
+                adicionarItemVetor(mochila, &quantidadeItens);
+                break;
+            case 2:
+                removerItemVetor(mochila, &quantidadeItens);
+                break;
+            case 3:
+                listarItensVetor(mochila, quantidadeItens);
+                break;
+            case 4:
+                printf("Voltando ao menu principal...\n");
+                break;
+            default:
+                printf("Opcao invalida!\n");
+        }
+    } while(opcao != 4);
+}
 
-// menuDeOrdenacao():
-// Permite ao jogador escolher como deseja ordenar os itens.
-// Utiliza a função insertionSort() com o critério selecionado.
-// Exibe a quantidade de comparações feitas (análise de desempenho).
+// Menu para lista encadeada
+void menuLista() {
+    struct No* inicio = NULL;
+    int opcao;
+    
+    printf("\nMODO LISTA ENCADEADA ATIVADO\n");
+    printf("Capacidade: Dinamica\n");
+    
+    do {
+        exibirMenuOperacoes();
+        scanf("%d", &opcao);
+        
+        switch(opcao) {
+            case 1:
+                adicionarItemLista(&inicio);
+                break;
+            case 2:
+                removerItemLista(&inicio);
+                break;
+            case 3:
+                listarItensLista(inicio);
+                break;
+            case 4:
+                printf("Voltando ao menu principal...\n");
+                break;
+            default:
+                printf("Opcao invalida!\n");
+        }
+    } while(opcao != 4);
+    
+    liberarLista(&inicio);
+}
 
-// insertionSort():
-// Implementação do algoritmo de ordenação por inserção.
-// Funciona com diferentes critérios de ordenação:
-// - Por nome (ordem alfabética)
-// - Por tipo (ordem alfabética)
-// - Por prioridade (da mais alta para a mais baixa)
-
-// buscaBinariaPorNome():
-// Realiza busca binária por nome, desde que a mochila esteja ordenada por nome.
-// Se encontrar, exibe os dados do item buscado.
-// Caso contrário, informa que não encontrou o item.
+// Função principal
+int main() {
+    int opcao;
+    
+    printf("BEM-VINDO AO DESAFIO CODIGO DA ILHA - FREE FIRE!\n");
+    printf("Sistema de Gerenciamento de Mochila Virtual\n");
+    
+    do {
+        exibirMenuPrincipal();
+        scanf("%d", &opcao);
+        
+        switch(opcao) {
+            case 1:
+                menuVetor();
+                break;
+            case 2:
+                menuLista();
+                break;
+            case 3:
+                printf("\nObrigado por usar a Mochila da Ilha!\n");
+                break;
+            default:
+                printf("Opcao invalida! Tente novamente.\n");
+        }
+    } while(opcao != 3);
+    
+    return 0;
+}
